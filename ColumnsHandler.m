@@ -1,7 +1,6 @@
 classdef ColumnsHandler
     properties
-        Columns = ["timestamp", ...
-            "raw_acc:magnitude_stats:mean", ...
+        Columns = ["raw_acc:magnitude_stats:mean", ...
             "raw_acc:magnitude_stats:std", ...
             "raw_acc:magnitude_stats:moment3", ...
             "raw_acc:magnitude_stats:moment4", ...
@@ -276,11 +275,13 @@ classdef ColumnsHandler
             "label:PHONE_IN_BAG", ...
             "label:PHONE_ON_TABLE", ...
             "label:WITH_CO-WORKERS", ...
-            "label:WITH_FRIENDS", ...
-            "label_source"];
+            "label:WITH_FRIENDS"];
     end
     
     methods
+        function obj = ColumnsHandler()
+        end
+        
         function columnsIndex = GetColumnsIndex(obj, columnsDescriptions)
             [~, columnsIndex] = intersect(obj.Columns, columnsDescriptions, "stable");
         end
@@ -290,11 +291,15 @@ classdef ColumnsHandler
         end
         
         function featuresIndex = getFeaturesIndex(obj)
-            featuresIndex = 2:226;
+            featuresIndex = 1:225;
         end
         
         function labelsIndex = getLabelsIndex(obj)
-            labelsIndex = 227:277;
+            labelsIndex = 226:276;
+        end
+        
+        function n = getTotalSize(obj)
+            n = size(obj.Columns, 2);
         end
     end
 end

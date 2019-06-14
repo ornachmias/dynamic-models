@@ -1,6 +1,16 @@
+tic
+columnsHandler = ColumnsHandler();
+debugModel = DebugModel(columnsHandler);
+
 dataLoader = DataLoader();
-sensorData = loadSingleSensorsData(dataLoader, '11B5EC4D-4133-4289-B475-4E737182A406');
-preProcess = PreProcess();
-[timestamps, features, labels] = extractData(preProcess, sensorData);
-debugModel = DebugModel("label:AT_THE_GYM", ["watch_acceleration:spectrum:y_log_energy_band2", "watch_acceleration:relative_directions:avr_cosine_similarity_lag_range1", "watch_acceleration:spectrum:z_log_energy_band3", "watch_acceleration:relative_directions:avr_cosine_similarity_lag_range2", "watch_acceleration:spectrum:z_log_energy_band2", "watch_acceleration:3d:std_x", "watch_acceleration:relative_directions:avr_cosine_similarity_lag_range0", "watch_acceleration:magnitude_spectrum:log_energy_band4", "watch_heading:entropy_8bins", "watch_acceleration:magnitude_stats:moment3", "watch_acceleration:magnitude_stats:percentile75", "audio_naive:mfcc11:mean", "watch_acceleration:magnitude_spectrum:spectral_entropy", "watch_acceleration:3d:std_z", "watch_heading:std_sin", "discrete:battery_state:is_unplugged", "watch_acceleration:magnitude_spectrum:log_energy_band3", "watch_acceleration:magnitude_stats:mean", "watch_acceleration:magnitude_spectrum:log_energy_band2", "watch_acceleration:magnitude_spectrum:log_energy_band1", "watch_acceleration:3d:std_y", "watch_acceleration:magnitude_stats:moment4", "watch_acceleration:spectrum:z_log_energy_band1"]);
-train(debugModel, sensorData);
+sensorData = loadSingleSensorsData(dataLoader, '0E6184E1-90C0-48EE-B25A-F1ECB7B9714E');
+sensorData = sensorData(1:100, [getFeaturesIndex(columnsHandler) getLabelsIndex(columnsHandler)]);
+
+bnet = createBnet(debugModel);
+engine = jtree_inf_engine(bnet);
+evidence = num2cell(sensorData');
+
+[bnet2, LL2, engine2] = learn_params_em(engine, evidence, 3);
+
+
+toc

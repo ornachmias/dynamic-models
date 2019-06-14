@@ -7,7 +7,7 @@ classdef GraphNode
     end
     
     methods
-        function obj = GraphNode(featureNames, labelNames, columnsHandler)
+        function obj = GraphNode(labelNames, featureNames, columnsHandler)
             obj.LabelName = labelNames;
             obj.LabelIds = GetColumnsIndex(columnsHandler, labelNames);
             obj.FeatureNames = featureNames;
