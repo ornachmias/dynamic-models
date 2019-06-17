@@ -286,16 +286,17 @@ classdef ColumnsHandler
             [~, columnsIndex] = intersect(obj.Columns, columnsDescriptions, "stable");
         end
         
-        function columns = get.Columns(obj)
-            columns = obj.Columns;
+        function newColumns = columnsSubset(obj, columns)
+            [~, columnsIndex] = intersect(obj.Columns, columns, "stable");
+            newColumns = obj.Columns(columnsIndex);
         end
         
         function featuresIndex = getFeaturesIndex(obj)
-            featuresIndex = 1:225;
+            featuresIndex = find(~contains(obj.Columns,'label:'));
         end
         
         function labelsIndex = getLabelsIndex(obj)
-            labelsIndex = 226:276;
+            labelsIndex = find(contains(obj.Columns,'label:'));
         end
         
         function n = getTotalSize(obj)

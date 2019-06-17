@@ -1,21 +1,29 @@
 classdef GraphNode
     properties
-        LabelName
+        LabelNames
         LabelIds
         FeatureNames
         FeatureIds
     end
     
     methods
-        function obj = GraphNode(labelNames, featureNames, columnsHandler)
-            obj.LabelName = labelNames;
-            obj.LabelIds = GetColumnsIndex(columnsHandler, labelNames);
+        function obj = GraphNode(labelNames, featureNames)
+            obj.LabelNames = labelNames;
             obj.FeatureNames = featureNames;
-            obj.FeatureIds = GetColumnsIndex(columnsHandler, featureNames);
         end
         
-        function updatedDag = addToGraph(obj,dag)
-            dag(obj.FeatureIds, obj.LabelIds) = 1;
+        function labelNames = get.LabelNames(obj)
+            labelNames = obj.LabelNames;
+        end
+        
+        function featureNames = get.FeatureNames(obj)
+            featureNames = obj.FeatureNames;
+        end
+        
+        function updatedDag = addToGraph(obj, dag, columnsHandler)
+            obj.LabelIds = GetColumnsIndex(columnsHandler, obj.LabelNames);
+            obj.FeatureIds = GetColumnsIndex(columnsHandler, obj.FeatureNames);
+            dag(obj.LabelIds, obj.FeatureIds) = 1;
             updatedDag = dag;
         end
     end

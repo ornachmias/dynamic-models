@@ -28,7 +28,7 @@ classdef DebugModel
             obj.Dag = obj.loadNodes(nodes);
 
             bnet = mk_bnet(dag, ns, 'discrete', [], 'observed', getLabelsIndex(obj.ColumnsHandler));
-
+            
             for i=1:obj.NumberOfNodes
                 bnet.CPD{i} = gaussian_CPD(bnet, i);
             end

@@ -13,6 +13,13 @@ classdef DataLoader
             sensorsData = loadSensorsData(obj);
         end
         
+        function sensorsData = loadMultipleSensorsData(obj, userIds)
+            sensorsData = [];
+            for i=1:length(userIds)
+                sensorsData = [sensorsData; obj.loadSingleSensorsData(userIds{i})];
+            end
+        end
+        
         function sensorsData = loadSingleSensorsData(obj, userId)
             sensorsDataDir = fullfile(obj.RootPath, 'SensorData');
             zipFilePath = fullfile(sensorsDataDir, strcat(userId, '.features_labels.csv.gz'));
