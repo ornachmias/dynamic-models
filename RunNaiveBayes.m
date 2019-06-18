@@ -19,7 +19,7 @@ for node=nodes
     sensorData = sensorData(:, [getFeaturesIndex(columnsHandler) getLabelsIndex(columnsHandler)]);
     sensorData(:, getLabelsIndex(columnsHandler)) = sensorData(:, getLabelsIndex(columnsHandler)) + 1;
 
-    [bnet, sensorDataSubset, columnsHandler] = createBnet(naiveBayesModel, sensorData(1:1000, :), node);
+    [bnet, sensorDataSubset, columnsHandler] = createBnet(naiveBayesModel, sensorData(1:100, :), node);
     sensorDataSubset(:, getFeaturesIndex(columnsHandler)) = runPreprocess(preProcess, sensorDataSubset(:, getFeaturesIndex(columnsHandler)));
     engine = jtree_inf_engine(bnet);
     evidence = num2cell(sensorDataSubset');
@@ -47,10 +47,7 @@ for i=1:length(nodes)
     predictions = [prediction; predictions];
 end
 
+predictionsHandler = PredictionsHandler(ColumnsHandler());
+score = getPredictionsScore(predictionsHandler, nodes, sensorData, predictions);
+disp(strcat('Test score (balanced accuracy): ', num2str(score)));
 
-% evidence = num2cell(sensorDataSubset(100, :));
-% evidence(:, end) = {[]};
-% mask = cellfun(@(C) isnumeric(C) && isscalar(C) && isnan(C), evidence);
-% evidence(mask) = {[]}; 
-% [educated_engine, ~] = enter_evidence(educated_engine, evidence);
-% marg = marginal_nodes(educated_engine, 77);
