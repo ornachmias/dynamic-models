@@ -1,13 +1,14 @@
 warning off all;
 
-nodes = createNodes();
-engines = [];
-subModels = [];
-
+columnsHandler = ColumnsHandler();
 dataLoader = DataLoader();
 validationSet = loadValidationData(dataLoader);
 train = validationSet(char(0)).train;
-    
+
+nodes = createNodes_corr();
+engines = [];
+subModels = [];
+
 for node=nodes
     columnsHandler = ColumnsHandler();
     preProcess = PreProcess(columnsHandler);
@@ -19,12 +20,13 @@ for node=nodes
     sensorData = sensorData(:, [getFeaturesIndex(columnsHandler) getLabelsIndex(columnsHandler)]);
     sensorData(:, getLabelsIndex(columnsHandler)) = sensorData(:, getLabelsIndex(columnsHandler)) + 1;
 
-    [bnet, sensorDataSubset, columnsHandler] = createBnet(naiveBayesModel, sensorData(1:100, :), node);
+    [bnet, sensorDataSubset, columnsHandler] = createBnet(naiveBayesModel, sensorData, node);
     sensorDataSubset(:, getFeaturesIndex(columnsHandler)) = runPreprocess(preProcess, sensorDataSubset(:, getFeaturesIndex(columnsHandler)));
+    sensorDataSubset = sensorDataSubset(1:1000, :);
     engine = jtree_inf_engine(bnet);
     evidence = num2cell(sensorDataSubset');
 
-    [bnet2, LL2, engine2] = learn_params_em(engine, evidence, 1);
+    [bnet2, LL2, engine2] = learn_params_em(engine, evidence, 3);
     educated_engine = jtree_inf_engine(bnet2);
     engines = [engines educated_engine];
     subModels = [subModels naiveBayesModel];

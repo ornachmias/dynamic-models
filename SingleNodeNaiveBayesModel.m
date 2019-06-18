@@ -1,8 +1,9 @@
 classdef SingleNodeNaiveBayesModel
+    %SINGLENODENAIVEBAYESMODEL Full Naive Bayes model
+    %   In this model the each feature is connected to a single label
     properties
         Dag
         ColumnsHandler
-        Engine
         NumberOfNodes
     end
     
@@ -15,7 +16,7 @@ classdef SingleNodeNaiveBayesModel
         
         function dag = loadNodes(obj, node)
             obj.Dag = zeros(obj.NumberOfNodes, obj.NumberOfNodes);
-            obj.Dag = addToGraph(node, obj.Dag, obj.ColumnsHandler);
+            [~, ~, obj.Dag] = addToGraph(node, obj.Dag, obj.ColumnsHandler);
             dag = obj.Dag;
         end
         

@@ -95,7 +95,7 @@ if nargin >= 3 & isstr(varargin{1}) % might have passed in 'discrete'
   for i=1:2:length(varargin)
     if strcmp(varargin{i}, 'discrete')
       dps_as_cps = varargin{i+1};
-      assert(myismember(dps_as_cps, dps));
+      assert(all(myismember(dps_as_cps, dps)));
       dps = mysetdiff(dps, dps_as_cps);         % put out the dps treated as cts
       CPD.dps_as_cps.ndx = find_equiv_posns(dps_as_cps, ps);
       CPD.dps_as_cps.separator = [0 cumsum(ns(dps_as_cps(1:end-1)))]; % concatenated dps_as_cps dims separators

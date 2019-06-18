@@ -1,4 +1,4 @@
-function nodes = createNodes() 
+function nodes = createNodes_corr() 
     nodes = [];
     labels = "label:LYING_DOWN";
     %  "location:diameter",
