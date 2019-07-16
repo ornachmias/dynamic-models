@@ -1,4 +1,4 @@
-function parts = strsplit(splitstr, str, option)
+function parts = strsplit2(splitstr, str, option)
 %STRSPLIT Split string into pieces.
 %
 %   STRSPLIT(SPLITSTR, STR, OPTION) splits the string STR at every occurrence

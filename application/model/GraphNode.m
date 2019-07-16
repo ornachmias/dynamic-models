@@ -2,6 +2,7 @@ classdef GraphNode
     properties
         LabelNames
         FeatureNames
+        
     end
     
     methods

@@ -419,6 +419,12 @@ classdef ColumnsHandler
     methods
         function obj = ColumnsHandler()
         end
+        
+        function index = GetColumnsIndex(obj, columnsDescription)
+            % We want to keep the order as the order we got as parameter
+            % This is important since we send the graph order here
+            [~, index] = intersect(columnsDescription, obj.Columns, "stable");
+        end
     end
 end
 
