@@ -91,10 +91,18 @@ classdef GraphHandler
             index = transpose(index);
         end
         
+        function description = GetNodesDescription(obj, index)
+            description = obj.AllNodesNames(index);
+        end
+        
         function sensorData = RawDataToGraphData(obj, features, labels)
             % Bnet doesn't support 0 values, so we have to increase all
             % discrete nodes by 1
             labels = labels + 1;
+            
+            % Replace NaN values with a third value to avoid errors
+            labels(isnan(labels)) = 3;
+            
             featuresDescription = [obj.ContinuousNodesNames obj.DiscreteNodesNames];
             featuresIndex = [];
             
@@ -109,13 +117,21 @@ classdef GraphHandler
             sensorData(cellfun(@isnan,sensorData)) = {[]};
         end
         
+        function sensorData = ClearLabelsValuesFromEvidence(obj, evidence)
+            for i=obj.GetLabelsIndex()
+                evidence{i, 1} = [];
+            end
+            
+            sensorData = evidence;
+        end
+        
         function nodes = GenerateNodes(obj)
             featuresMapping = getFeaturesMapping();
             labels = keys(featuresMapping);
             features = values(featuresMapping);
             nodes = [];
             for i = 1:length(featuresMapping)
-                nodes = [nodes GraphNode(labels{i}, features{i})];
+                nodes = [nodes LabelGraphNode(labels{i}, features{i})];
             end
         end
     end

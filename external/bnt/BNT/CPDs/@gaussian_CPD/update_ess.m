@@ -1,4 +1,5 @@
 function CPD = update_ess(CPD, fmarginal, evidence, ns, cnodes, hidden_bitv)
+
 % UPDATE_ESS Update the Expected Sufficient Statistics of a Gaussian node
 % function CPD = update_ess(CPD, fmarginal, evidence, ns, cnodes, hidden_bitv)
 

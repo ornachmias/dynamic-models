@@ -47,7 +47,6 @@ bnet = bnet_from_engine(engine);
 %%%%%%%%%
 
 function [engine, loglik] = EM_step(engine, cases)
-
 bnet = bnet_from_engine(engine); % engine contains the old params that are used for the E step
 CPDs = bnet.CPD; % these are the new params that get maximized
 num_CPDs = length(CPDs);
@@ -70,6 +69,11 @@ for l=1:ncases
   loglik = loglik + ll;
   hidden_bitv = zeros(1,n);
   hidden_bitv(isemptycell(evidence))=1;
+  
+  if (mod(l, 100) == 0)
+      disp(['update_ess case ', num2str(l), '/', num2str(ncases)]);
+  end
+  
   for i=1:n
     e = bnet.equiv_class(i);
     if adjustable(e)

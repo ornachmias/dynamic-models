@@ -1,91 +1,70 @@
 classdef NaiveBayesModel
-    %NAIVEBAYESMODEL Full Naive Bayes model
-    %   In this model the features are connected to several labels
-    
     properties
-        ColumnsHandler
-        Dag
-        NumberOfNodes
+        GraphHandler
+        Nodes
     end
     
     methods
-        function obj = NaiveBayesModel(columnsHandler)
-            obj.ColumnsHandler = columnsHandler;
-            obj.Dag = zeros(1, 1);
-            obj.NumberOfNodes = 0;
+        function obj = NaiveBayesModel(graphHandler, nodes)
+            obj.GraphHandler = graphHandler;
+            obj.Nodes = nodes;
         end
         
-        function dag = loadNodes(obj, nodes)
-            obj.Dag = zeros(obj.NumberOfNodes, obj.NumberOfNodes);
+        function dag = GenerateDag(obj, showGraph)
+            networkSize = length(obj.GraphHandler.AllNodesNames);
+            dag = zeros(networkSize, networkSize);
             
-            for node=nodes    
-                [labelIds, ~, obj.Dag] = addToGraph(node, obj.Dag, obj.ColumnsHandler);
-                obj.Dag(labelIds, obj.NumberOfNodes) = 1;
-            end
-
-            dag = obj.Dag;
-        end
-        
-        function [columnsHandler, dataSubset] = createDataSubset(obj, sensorData, nodes)
-            columns = [];
-            for node=nodes
-                columns = [columns node.LabelNames node.FeatureNames];
+            for n = obj.Nodes
+                labelsIndex = obj.GraphHandler.GetNodesIndex(n.LabelNames);
+                featuresIndex = obj.GraphHandler.GetNodesIndex(n.FeatureNames);
+                dag(labelsIndex, featuresIndex) = 1;
             end
             
-            subsetIndexes = GetColumnsIndex(obj.ColumnsHandler, columns);
-            dataSubset = sensorData(:, subsetIndexes);
-            
-            obj.ColumnsHandler.Columns = columnsSubset(obj.ColumnsHandler, columns);
-            columnsHandler = obj.ColumnsHandler;
+            if (showGraph == 2)
+                obj.drawGraph(dag);
+            end
         end
         
-        function newSensorData = replaceNanInLabels(obj, sensorData)
-            B = sensorData;
-            Lidx = isnan(sensorData);
-            B(Lidx) = 3;
-            sensorData(:, getLabelsIndex(obj.ColumnsHandler)) = B(:, getLabelsIndex(obj.ColumnsHandler));
-            newSensorData = sensorData;
-        end
-        
-        function [bnet, sensorDataSubset, columnsHandler] = createBnet(obj, sensorData, nodes)
-            [obj.ColumnsHandler, sensorDataSubset] = obj.createDataSubset(sensorData, nodes);
-            sensorDataSubset = obj.replaceNanInLabels(sensorDataSubset);
-            
-            % Add column to data for the sofmax function, we dont care
-            % about the values since we are going to override it later
-            sensorDataSubset = [sensorDataSubset sensorDataSubset(:, 1)];
-            
-            % Add one to the softmax node
-            obj.NumberOfNodes = getTotalSize(obj.ColumnsHandler) + 1;
-            
-            ns = 4* ones(1, obj.NumberOfNodes);
-            ns(1, obj.NumberOfNodes) = 6;
-            
-            obj.Dag = obj.loadNodes(nodes);
+        function bnet = CreateBnet(obj)
+            networkSize = length(obj.GraphHandler.AllNodesNames);
+            ns = zeros(1, networkSize);
+            ns(1, obj.GraphHandler.GetLabelsIndex()) = 3;
+            ns(1, obj.GraphHandler.GetNodesIndex("discrete:battery_plugged")) = 4;
+            ns(1, obj.GraphHandler.GetNodesIndex("discrete:ringer_mode")) = 4;
+            ns(1, obj.GraphHandler.GetNodesIndex("discrete:time_of_day")) = 8;
+            ns(1, obj.GraphHandler.GetNodesIndex("discrete:wifi_status")) = 4;
+            dag = obj.GenerateDag(1);
 
-            % Softmax node is the last one, so we add its' Id as well
-            bnet = mk_bnet(obj.Dag, ns, 'discrete', [getLabelsIndex(obj.ColumnsHandler) obj.NumberOfNodes], 'observed', getFeaturesIndex(obj.ColumnsHandler));
-
-            for i=getFeaturesIndex(obj.ColumnsHandler)
+            bnet = mk_bnet(dag, ns, 'discrete', ...
+                [obj.GraphHandler.GetDiscreteFeaturesIndex() obj.GraphHandler.GetLabelsIndex()], ...
+                'observed', obj.GraphHandler.GetFeaturesIndex(), ...
+                'names', [obj.GraphHandler.ContinuousNodesNames obj.GraphHandler.DiscreteNodesNames obj.GraphHandler.LabelNodesNames]);
+            
+            for i=obj.GraphHandler.GetContinousFeaturesIndex()
                 bnet.CPD{i} = gaussian_CPD(bnet, i);
             end
             
-            for i=getLabelsIndex(obj.ColumnsHandler)
-                ns(1, i) = 2;
+            for i=obj.GraphHandler.GetDiscreteFeaturesIndex()
                 bnet.CPD{i} = tabular_CPD(bnet, i);
             end
             
-            bnet.CPD{obj.NumberOfNodes} = softmax_CPD(bnet, obj.NumberOfNodes, 'discrete', getLabelsIndex(obj.ColumnsHandler));
-            
-            columnsHandler = obj.ColumnsHandler;
-            obj.drawGraph(obj.Dag);
+            for i=obj.GraphHandler.GetLabelsIndex()
+                bnet.CPD{i} = tabular_CPD(bnet, i);
+            end
         end
         
         function drawGraph(obj, dag)
-            G = digraph(dag);
-            h = plot(G,'Layout','force');
-            highlight(h, obj.NumberOfNodes, 'NodeColor', 'r')
-            labelnode(h, 1:obj.NumberOfNodes, 1:obj.NumberOfNodes);
+            figure();
+            g = digraph(dag);
+            h = plot(g, 'Layout','layered', 'NodeLabel', cellstr(obj.GraphHandler.AllNodesNames));
+
+            for n = obj.Nodes
+                labelsIndex = obj.GraphHandler.GetNodesIndex(n.LabelNames);
+                featuresIndex = obj.GraphHandler.GetNodesIndex(n.FeatureNames);
+                currentColor = rand(1,3);
+                highlight(h, labelsIndex, featuresIndex, 'EdgeColor', currentColor)
+                highlight(h, labelsIndex, 'NodeColor', currentColor);
+            end
         end
     end
 end

@@ -1,4 +1,4 @@
-classdef GraphNode
+classdef LabelGraphNode
     properties
         LabelNames
         FeatureNames
@@ -6,7 +6,7 @@ classdef GraphNode
     end
     
     methods
-        function obj = GraphNode(labelNames, featureNames)
+        function obj = LabelGraphNode(labelNames, featureNames)
             obj.LabelNames = labelNames;
             obj.FeatureNames = featureNames;
         end

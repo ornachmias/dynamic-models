@@ -18,6 +18,10 @@ classdef DataLoader
                 labels = [labels; l];
                 features = [features; f];
             end
+            
+            % Since the missing data wa filled for each user, but not for
+            % the entire dataset, we need to re-run it
+            features = obj.PreProcess.replaceMissingValues(features);
         end
         
         function [features, labels] = LoadSingleSensorsData(obj, userId)
