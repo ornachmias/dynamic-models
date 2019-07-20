@@ -12,18 +12,19 @@ classdef PreProcess
             obj.LabelsHandler = labelsHandler;
         end
         
-        function [features, labels] = RunPreprocess(obj, userSensorData)
-            processedData = obj.removeColumns(userSensorData);
+        function [features, labels, timestamps] = RunPreprocess(obj, userSensorData)
+            [processedData, timestamps] = obj.removeColumns(userSensorData);
             [features, labels] = obj.separateSensorData(processedData);
             features = obj.mergeColumns(features);
             features = obj.replaceMissingValues(features);
         end
 
-        function newUserSensorData = removeColumns(obj, sensorData)
+        function [newUserSensorData, timestamps] = removeColumns(obj, sensorData)
             % Get only the columns' index we are about
             [~, columnsIndex] = intersect(obj.ColumnsHandler.RawColumns, obj.ColumnsHandler.Columns, "stable");
             
             % Filter those specific columns
+            timestamps = sensorData(:, 1);
             newUserSensorData = sensorData(:, columnsIndex);
         end
         

@@ -3,7 +3,7 @@ featuresHandler = FeaturesHandler();
 labelsHandler = LabelsHandler();
 graphHandler = GraphHandler(featuresHandler);
 nodes = graphHandler.GenerateNodes();
-naiveBayesModel = NaiveBayesModel(graphHandler, nodes);
+timeNaiveBayesModel = TimeNaiveBayesModel(graphHandler, nodes);
 preProcess = PreProcess(columnsHandler, featuresHandler, labelsHandler);
 dataLoader = DataLoader(preProcess);
 
@@ -11,10 +11,10 @@ disp('Loading users to load');
 validationData = dataLoader.LoadValidationData();
 
 disp('Creating the bayesian network');
-bnet = naiveBayesModel.CreateBnet();
+%bnet = timeNaiveBayesModel.CreateBnet();
  
 disp('Loading users data');
-[features, labels, ~] = dataLoader.LoadMultipleSensorsData(validationData('0').train);
+[features, labels, timestamps] = dataLoader.LoadMultipleSensorsData(validationData('0').train);
 
 disp('Creating inference engine');
 engine = jtree_inf_engine(bnet);
@@ -25,13 +25,13 @@ evidence = graphHandler.RawDataToGraphData(features, labels);
 disp('Starting to learn network parameters');
 [bnet, ll, engine] = learn_params_em(engine, evidence, 10);
 
-save 'naive_bayes_engine' engine
-save 'naive_bayes_bnet' bnet
+% save 'time_naive_bayes_engine' engine
+% save 'time_naive_bayes_bnet' bnet
+% 
+% load 'time_naive_bayes_engine' engine
+% load 'time_naive_bayes_bnet' bnet
 
-load 'naive_bayes_engine' engine
-load 'naive_bayes_bnet' bnet
-
-[features, labels, ~] = dataLoader.LoadMultipleSensorsData(validationData('0').test);
+[features, labels] = dataLoader.LoadMultipleSensorsData(validationData('0').test);
 
 predictionsHandler = PredictionsHandler();
 samplesCount = size(features, 1);

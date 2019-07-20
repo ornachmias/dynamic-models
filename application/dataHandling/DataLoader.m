@@ -10,13 +10,15 @@ classdef DataLoader
             obj.PreProcess = preProcess;
         end
         
-        function [features, labels] = LoadMultipleSensorsData(obj, userIds)
+        function [features, labels, timestamps] = LoadMultipleSensorsData(obj, userIds)
             labels = [];
             features = [];
+            timestamps = [];
             for i=1:length(userIds)
-                [f, l] = obj.LoadSingleSensorsData(userIds{i});
+                [f, l, t] = obj.LoadSingleSensorsData(userIds{i});
                 labels = [labels; l];
                 features = [features; f];
+                timestamps = [timestamps; t];
             end
             
             % Since the missing data wa filled for each user, but not for
@@ -24,7 +26,7 @@ classdef DataLoader
             features = obj.PreProcess.replaceMissingValues(features);
         end
         
-        function [features, labels] = LoadSingleSensorsData(obj, userId)
+        function [features, labels, timestamps] = LoadSingleSensorsData(obj, userId)
             sensorsDataDir = fullfile(obj.RootPath, 'SensorData');
             zipFilePath = fullfile(sensorsDataDir, strcat(userId, '.features_labels.csv.gz'));
             dataFilePath = erase(zipFilePath, '.gz');
@@ -33,7 +35,7 @@ classdef DataLoader
             end
 
             sensorsData = csvread(string(dataFilePath), 1, 0);
-            [features, labels] = obj.PreProcess.RunPreprocess(sensorsData);
+            [features, labels, timestamps] = obj.PreProcess.RunPreprocess(sensorsData);
         end
         
         function sensorsData = loadSensorsData(obj)
