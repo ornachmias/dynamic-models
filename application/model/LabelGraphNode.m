@@ -2,7 +2,7 @@ classdef LabelGraphNode
     properties
         LabelNames
         FeatureNames
-        
+        Evidences
     end
     
     methods

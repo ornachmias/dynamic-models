@@ -4,6 +4,7 @@ labelsHandler = LabelsHandler();
 graphHandler = GraphHandler(featuresHandler);
 nodes = graphHandler.GenerateNodes();
 naiveBayesModel = NaiveBayesModel(graphHandler, nodes);
+naiveBayesModel.GenerateDag(2);
 preProcess = PreProcess(columnsHandler, featuresHandler, labelsHandler);
 dataLoader = DataLoader(preProcess);
 

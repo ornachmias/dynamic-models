@@ -117,6 +117,41 @@ classdef GraphHandler
             sensorData(cellfun(@isnan,sensorData)) = {[]};
         end
         
+        function sensorData = RawDataToTimeGraphData(obj, features, labels, timestamps)
+            % Bnet doesn't support 0 values, so we have to increase all
+            % discrete nodes by 1
+            labels = labels + 1;
+            
+            % Replace NaN values with a third value to avoid errors
+            labels(isnan(labels)) = 3;
+            
+            featuresDescription = [obj.ContinuousNodesNames obj.DiscreteNodesNames];
+            featuresIndex = [];
+            
+            for f=featuresDescription
+                featuresIndex = [featuresIndex obj.FeaturesHandler.GetFeatureIndex(f)];
+            end
+            
+            features = features(:, featuresIndex);
+            
+            cNodes = obj.GetContinousFeaturesIndex();
+            features(:, cNodes) = zscore(features(:, cNodes));
+            
+            singleNetworkSize = size([features labels], 2) * 3;
+            samplesSize = size(features, 1) - 2;
+            sensorData = zeros(samplesSize, singleNetworkSize);
+            
+            for i=3:size(features, 1)
+                if (timestamps(i, 1) - timestamps(i - 1, 1) < 3600 && timestamps(i - 1, 1) - timestamps(i - 2, 1) < 3600)
+                    sensorData(i - 2, :) = [features(i - 2, :) labels(i - 2, :) features(i - 1, :) labels(i - 1, :) features(i, :) labels(i, :)];
+                end
+            end
+            
+            sensorData = sensorData(any(sensorData,2),:);
+            sensorData = num2cell(sensorData');
+            sensorData(cellfun(@isnan,sensorData)) = {[]};
+        end
+        
         function sensorData = ClearLabelsValuesFromEvidence(obj, evidence)
             for i=obj.GetLabelsIndex()
                 evidence{i, 1} = [];

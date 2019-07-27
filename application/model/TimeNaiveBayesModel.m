@@ -46,21 +46,47 @@ classdef TimeNaiveBayesModel
         end
         
         function bnet = CreateBnet(obj)
-            networkSize = length(obj.GraphHandler.AllNodesNames);
+            networkSize = length(obj.GraphHandler.AllNodesNames) * 3;
             ns = zeros(1, networkSize);
+            
+            secondNetworkDiff = length(obj.GraphHandler.AllNodesNames);
+            thirdNetworkDiff = 2 * secondNetworkDiff;
+            
             ns(1, obj.GraphHandler.GetLabelsIndex()) = 3;
             ns(1, obj.GraphHandler.GetNodesIndex("discrete:battery_plugged")) = 4;
             ns(1, obj.GraphHandler.GetNodesIndex("discrete:ringer_mode")) = 4;
             ns(1, obj.GraphHandler.GetNodesIndex("discrete:time_of_day")) = 8;
             ns(1, obj.GraphHandler.GetNodesIndex("discrete:wifi_status")) = 4;
+            
+            ns(1, secondNetworkDiff + obj.GraphHandler.GetLabelsIndex()) = 3;
+            ns(1, secondNetworkDiff + obj.GraphHandler.GetNodesIndex("discrete:battery_plugged")) = 4;
+            ns(1, secondNetworkDiff + obj.GraphHandler.GetNodesIndex("discrete:ringer_mode")) = 4;
+            ns(1, secondNetworkDiff + obj.GraphHandler.GetNodesIndex("discrete:time_of_day")) = 8;
+            ns(1, secondNetworkDiff + obj.GraphHandler.GetNodesIndex("discrete:wifi_status")) = 4;
+            
+            ns(1, thirdNetworkDiff + obj.GraphHandler.GetLabelsIndex()) = 3;
+            ns(1, thirdNetworkDiff + obj.GraphHandler.GetNodesIndex("discrete:battery_plugged")) = 4;
+            ns(1, thirdNetworkDiff + obj.GraphHandler.GetNodesIndex("discrete:ringer_mode")) = 4;
+            ns(1, thirdNetworkDiff + obj.GraphHandler.GetNodesIndex("discrete:time_of_day")) = 8;
+            ns(1, thirdNetworkDiff + obj.GraphHandler.GetNodesIndex("discrete:wifi_status")) = 4;
+            
             dag = obj.GenerateDag(1);
 
             bnet = mk_bnet(dag, ns, 'discrete', ...
-                [obj.GraphHandler.GetDiscreteFeaturesIndex() obj.GraphHandler.GetLabelsIndex()], ...
-                'observed', obj.GraphHandler.GetFeaturesIndex(), ...
-                'names', [obj.GraphHandler.ContinuousNodesNames obj.GraphHandler.DiscreteNodesNames obj.GraphHandler.LabelNodesNames]);
+                [obj.GraphHandler.GetDiscreteFeaturesIndex() obj.GraphHandler.GetLabelsIndex() ...
+                secondNetworkDiff + obj.GraphHandler.GetDiscreteFeaturesIndex() secondNetworkDiff + obj.GraphHandler.GetLabelsIndex() ...
+                thirdNetworkDiff + obj.GraphHandler.GetDiscreteFeaturesIndex() thirdNetworkDiff + obj.GraphHandler.GetLabelsIndex()], ...
+                'observed', [obj.GraphHandler.GetFeaturesIndex() secondNetworkDiff + obj.GraphHandler.GetFeaturesIndex() thirdNetworkDiff + obj.GraphHandler.GetFeaturesIndex()]);
             
             for i=obj.GraphHandler.GetContinousFeaturesIndex()
+                bnet.CPD{i} = gaussian_CPD(bnet, i);
+            end
+            
+            for i=obj.GraphHandler.GetContinousFeaturesIndex() + secondNetworkDiff
+                bnet.CPD{i} = gaussian_CPD(bnet, i);
+            end
+            
+            for i=obj.GraphHandler.GetContinousFeaturesIndex() + thirdNetworkDiff
                 bnet.CPD{i} = gaussian_CPD(bnet, i);
             end
             
@@ -68,7 +94,23 @@ classdef TimeNaiveBayesModel
                 bnet.CPD{i} = tabular_CPD(bnet, i);
             end
             
+            for i=obj.GraphHandler.GetDiscreteFeaturesIndex() + secondNetworkDiff
+                bnet.CPD{i} = tabular_CPD(bnet, i);
+            end
+            
+            for i=obj.GraphHandler.GetDiscreteFeaturesIndex() + thirdNetworkDiff
+                bnet.CPD{i} = tabular_CPD(bnet, i);
+            end
+            
             for i=obj.GraphHandler.GetLabelsIndex()
+                bnet.CPD{i} = tabular_CPD(bnet, i);
+            end
+            
+            for i=obj.GraphHandler.GetLabelsIndex() + secondNetworkDiff
+                bnet.CPD{i} = tabular_CPD(bnet, i);
+            end
+            
+            for i=obj.GraphHandler.GetLabelsIndex() + thirdNetworkDiff
                 bnet.CPD{i} = tabular_CPD(bnet, i);
             end
         end
