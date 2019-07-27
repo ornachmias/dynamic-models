@@ -101,6 +101,22 @@ classdef SingleLabelLogisticRegressionModel
             sensorData(cellfun(@isnan,sensorData)) = {[]};
         end
         
+        function sensorData = RawDataToTestGraphData(obj, features, labels)           
+            % Order features based on node's order
+            index = [];
+            
+            for f=obj.Node.FeatureNames
+                [~, i] = intersect(obj.FeaturesHandler.FeatureNames, f, "stable");
+                index = [index i];
+            end
+            
+            features = features(:, index);
+            
+            sensorData = [features labels];
+            sensorData = num2cell(sensorData');
+            sensorData(cellfun(@isnan,sensorData)) = {[]};
+        end
+        
         function [sensorData, originalValue] = ClearLabelsValuesFromEvidence(obj, evidence)
             originalValue = evidence{size(evidence, 1), 1};
             evidence{size(evidence, 1), 1} = [];

@@ -19,8 +19,8 @@ for i=1:length(models)
     bnets(i) = models(i).CreateBnet();
 end
 
-disp('Loading users data');
-[features, labels, ~] = dataLoader.LoadMultipleSensorsData(validationData('0').train);
+% disp('Loading users data');
+% [features, labels, ~] = dataLoader.LoadMultipleSensorsData(validationData('0').train);
 
 % disp('Creating inference engine');
 % for i=1:length(bnets)
@@ -58,6 +58,8 @@ for i=1:length(nodes)
 end
 
 [features, labels, ~] = dataLoader.LoadMultipleSensorsData(validationData('0').test);
+cNodes = graphHandler.GetContinousFeaturesIndex();
+features(:, cNodes) = zscore(features(:, cNodes));
 
 predictionsHandler = PredictionsHandler();
 samplesCount = size(features, 1);
@@ -74,11 +76,13 @@ for s=1:samplesCount
     results = zeros(labelsCount, 4);
     
     for i=1:length(nodes)
-        evidence = models(i).RawDataToGraphData(features(s, :), labels(s, :));
+        currentLabelsIndex = labelsHandler.GetLabelIndex(nodes(i).LabelNames);
+        currentLabels = labels(:, currentLabelsIndex);
+        evidence = models(i).RawDataToTestGraphData(features(s, :), currentLabels(s, :));
         [evidence, originalValue] = models(i).ClearLabelsValuesFromEvidence(evidence);
         [educated_engine, ~] = enter_evidence(engines(i), evidence);
         marginalNode = models(i).GetLabelPrediction(evidence, educated_engine);
-        results(l, :) = predictionsHandler.GetSinglePredictionScore(marginalNode, originalValue);
+        results(i, :) = predictionsHandler.GetSinglePredictionScore(marginalNode, originalValue);
     end
 
     sumResults(s, :) = sum(results);
@@ -86,3 +90,4 @@ end
 
 testScore = predictionsHandler.GetPredictionsScore(sumResults);
 disp(['Total score for the test run: ', num2str(testScore)]);
+% Last successful run - Total score for the test run: 0.56262

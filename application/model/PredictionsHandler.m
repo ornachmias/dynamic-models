@@ -16,6 +16,10 @@ classdef PredictionsHandler
             % Default value in case one of the values in NaN
             singleScore = [0 0 0 0];
             
+            if (isempty(groundTruth))
+                return;
+            end
+            
             if (nodePrediction == 2 && groundTruth == 1)
                 singleScore = [1 0 0 0];
             elseif (nodePrediction == 1 && groundTruth == 0)
