@@ -2,12 +2,14 @@ classdef TimeNaiveBayesModel
     properties
         GraphHandler
         Nodes
+        FeaturesHandler
     end
     
     methods
-        function obj = TimeNaiveBayesModel(graphHandler, nodes)
+        function obj = TimeNaiveBayesModel(graphHandler, nodes, featuresHandler)
             obj.GraphHandler = graphHandler;
             obj.Nodes = nodes;
+            obj.FeaturesHandler = featuresHandler;
         end
         
         function dag = GenerateDag(obj, showGraph)
@@ -113,6 +115,35 @@ classdef TimeNaiveBayesModel
             for i=obj.GraphHandler.GetLabelsIndex() + thirdNetworkDiff
                 bnet.CPD{i} = tabular_CPD(bnet, i);
             end
+        end
+        
+        function sensorData = RawDataToTestTimeGraphData(obj, features, labels)
+            % Bnet doesn't support 0 values, so we have to increase all
+            % discrete nodes by 1
+            labels = labels + 1;
+            
+            % Replace NaN values with a third value to avoid errors
+            labels(isnan(labels)) = 3;
+            
+            featuresDescription = [obj.GraphHandler.ContinuousNodesNames obj.GraphHandler.DiscreteNodesNames];
+            featuresIndex = [];
+            
+            for f=featuresDescription
+                featuresIndex = [featuresIndex obj.FeaturesHandler.GetFeatureIndex(f)];
+            end
+            
+            features = features(:, featuresIndex);
+
+            singleNetworkSize = size([features labels], 2) * 3;
+            samplesSize = size(features, 1) - 2;
+            sensorData = zeros(samplesSize, singleNetworkSize);
+            
+            predictionlabels = NaN(size(labels(1, :)));
+            sensorData(1, :) = [features(1, :) labels(1, :) features(2, :) labels(2, :) features(3, :) predictionlabels];
+            
+            sensorData = sensorData(any(sensorData,2),:);
+            sensorData = num2cell(sensorData');
+            sensorData(cellfun(@isnan,sensorData)) = {[]};
         end
         
         function drawGraph(obj, dag)
